@@ -1,0 +1,35 @@
+name: Jekyll build check (temporary)
+
+on:
+  push:
+    branches: ["master"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1.328.0
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true
+          cache-version: 0
+      - name: Build with Jekyll
+        run: bundle exec jekyll build --baseurl "/LJT-Homepage"
+        env:
+          JEKYLL_ENV: production
+      - name: Verify generated pages
+        run: |
+          echo "--- _site root ---"
+          ls _site
+          echo "--- index check ---"
+          test -f _site/index.html && echo "INDEX OK"
+          echo "--- publications archive ---"
+          ls _site/publications/ || true
+          echo "--- individual publication pages ---"
+          ls _site/publication/ || true
+          echo "--- generated publication HTML titles ---"
+          grep -o 'Published in <i>[^<]*</i>, [0-9]\{4\}' _site/publications/index.html | head -20 || true
